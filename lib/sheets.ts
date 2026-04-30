@@ -63,7 +63,6 @@ const ICON_MAP: Record<string, string> = {
   newsletter: '🗞️',
   shop: '🛍️',
   store: '🛍️',
-  donate: '💜',
   github: '⚙️',
   substack: '📬',
   telegram: '✈️',
