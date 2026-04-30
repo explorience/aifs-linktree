@@ -3,14 +3,14 @@ export interface LinkItem {
   url: string
 }
 
-// Fetches from a Google Sheet using CSV export
+// Fetches from a Google Sheet using CSV export via gviz (more reliable than export endpoint)
 // Uses gid (sheetId) when available so tab name changes don't break things
 async function fetchSheetCSV(sheetId: string, options: { sheetName?: string; gid?: number }): Promise<string> {
-  // Prefer gid, fall back to sheetName
-  const param = options.gid !== undefined ? String(options.gid) : encodeURIComponent(options.sheetName || 'Sheet1')
-  const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=${param}`
+  // Use gviz endpoint which is more reliable for public sheets
+  const sheetParam = options.gid !== undefined ? `gid=${options.gid}` : `sheet=${encodeURIComponent(options.sheetName || 'Sheet1')}`
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&${sheetParam}`
 
-  const response = await fetch(csvUrl)
+  const response = await fetch(url)
 
   if (!response.ok) {
     throw new Error(`Failed to fetch sheet (gid=${options.gid}, name=${options.sheetName}): ${response.status}`)
