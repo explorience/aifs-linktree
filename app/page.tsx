@@ -32,7 +32,7 @@ export default async function Home() {
   return (
     <main className="page">
       <header className="header">
-        <img src="/logo.jpg" alt="All In For Sport logo" className="logo" />
+        <img src="/logo.png" alt="All In For Sport logo" className="logo" />
         <h1 className="site-name">All In For Sport</h1>
         <p className="tagline">{tagline}</p>
       </header>
