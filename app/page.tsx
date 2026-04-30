@@ -23,7 +23,7 @@ export default async function Home() {
   return (
     <main className="page">
       <header className="header">
-        <div className="logo">A</div>
+        <img src="/logo.jpg" alt="All In For Sport logo" className="logo" />
         <h1 className="site-name">All In For Sport</h1>
         <p className="tagline">
           Building a coordi-nation for grassroots sports communities worldwide.

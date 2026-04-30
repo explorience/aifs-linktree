@@ -5,14 +5,16 @@
 }
 
 :root {
-  --bg: #0a0a0a;
-  --card-bg: #141414;
-  --card-hover: #1c1c1c;
-  --text-primary: #fafafa;
-  --text-secondary: #a1a1a1;
-  --border: #2a2a2a;
-  --accent: #f97316;
-  --accent-dim: rgba(249, 115, 22, 0.12);
+  --bg: #0B0C10;
+  --card-bg: #131315;
+  --card-hover: #1a1a1f;
+  --text-primary: #ffffff;
+  --text-secondary: #9CA3AF;
+  --border: #1f1f23;
+  --accent-blue: #3BB1FF;
+  --accent-pink: #E841FF;
+  --accent-dim-blue: rgba(59, 177, 255, 0.1);
+  --accent-dim-pink: rgba(232, 65, 255, 0.08);
 }
 
 body {
@@ -30,7 +32,6 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
 }
 
 .header {
@@ -40,19 +41,17 @@ body {
 }
 
 .logo {
-  width: 72px;
-  height: 72px;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.25rem;
   border-radius: 50%;
-  border: 2px solid var(--accent);
-  margin: 0 auto 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent-dim);
-  color: var(--accent);
-  font-size: 1.75rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  overflow: hidden;
+}
+
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .site-name {
@@ -66,8 +65,8 @@ body {
 .tagline {
   font-size: 0.875rem;
   color: var(--text-secondary);
-  line-height: 1.5;
-  max-width: 280px;
+  line-height: 1.6;
+  max-width: 300px;
   margin: 0 auto;
 }
 
@@ -90,13 +89,13 @@ body {
   color: var(--text-primary);
   font-size: 0.9375rem;
   font-weight: 500;
-  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+  transition: background 150ms ease, border-color 200ms ease, transform 150ms ease;
   width: 100%;
 }
 
 .link-card:hover {
   background: var(--card-hover);
-  border-color: var(--accent);
+  border-color: var(--accent-blue);
   transform: translateY(-1px);
 }
 
@@ -105,16 +104,16 @@ body {
 }
 
 .link-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: var(--accent-dim);
-  border: 1px solid rgba(249, 115, 22, 0.2);
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent-dim-blue), var(--accent-dim-pink));
+  border: 1px solid rgba(59, 177, 255, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
 .link-content {
@@ -146,7 +145,7 @@ body {
 }
 
 .footer a {
-  color: var(--accent);
+  color: var(--accent-blue);
   text-decoration: none;
 }
 
