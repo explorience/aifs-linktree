@@ -1,4 +1,4 @@
-import { getLinks, getIconForTitle } from '@/lib/sheets'
+import { getLinks, getTagline, getIconForTitle } from '@/lib/sheets'
 
 // Revalidate every 5 minutes
 export const revalidate = 300
@@ -8,16 +8,25 @@ async function getData() {
   if (!sheetId) {
     throw new Error('SHEET_ID environment variable is not set')
   }
-  return getLinks(sheetId)
+  const [links, tagline] = await Promise.all([
+    getLinks(sheetId, 'Sheet1'),
+    getTagline(sheetId, 'Sheet2'),
+  ])
+  return { links, tagline }
 }
 
 export default async function Home() {
-  let links: Awaited<ReturnType<typeof getData>> = []
+  let links: Awaited<ReturnType<typeof getData>>['links'] = []
+  let tagline = 'Building a coordi-nation for grassroots sports communities worldwide.'
 
   try {
-    links = await getData()
+    const data = await getData()
+    links = data.links
+    if (data.tagline) {
+      tagline = data.tagline
+    }
   } catch (err) {
-    console.error('Failed to load links:', err)
+    console.error('Failed to load data from sheet:', err)
   }
 
   return (
@@ -25,9 +34,7 @@ export default async function Home() {
       <header className="header">
         <img src="/logo.jpg" alt="All In For Sport logo" className="logo" />
         <h1 className="site-name">All In For Sport</h1>
-        <p className="tagline">
-          Building a coordi-nation for grassroots sports communities worldwide.
-        </p>
+        <p className="tagline">{tagline}</p>
       </header>
 
       {links.length === 0 ? (

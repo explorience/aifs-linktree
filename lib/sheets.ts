@@ -3,35 +3,75 @@ export interface LinkItem {
   url: string
 }
 
-export async function getLinks(sheetId: string, sheetName = 'Sheet1'): Promise<LinkItem[]> {
-  // Public sheet: use CSV export endpoint (no auth required)
+async function fetchSheetCSV(sheetId: string, sheetName: string): Promise<string> {
   const encodedSheetName = encodeURIComponent(sheetName)
   const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=${encodedSheetName}`
 
   const response = await fetch(csvUrl)
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch sheet: ${response.status}`)
+    throw new Error(`Failed to fetch sheet "${sheetName}": ${response.status}`)
   }
 
-  const csvText = await response.text()
-  const rows = csvText.split('\n').map((row) => {
-    const cells: string[] = []
-    let current = ''
-    let inQuotes = false
-    for (const char of row) {
-      if (char === '"') {
-        inQuotes = !inQuotes
-      } else if (char === ',' && !inQuotes) {
-        cells.push(current.trim())
+  return response.text()
+}
+
+function parseCSV(csvText: string): string[][] {
+  const rows: string[][] = []
+  let current = ''
+  let inQuotes = false
+
+  for (const char of csvText) {
+    if (char === '"') {
+      inQuotes = !inQuotes
+    } else if (char === '\n' && !inQuotes) {
+      // Don't process newlines inside quotes
+      // Actually, check if we're at a row boundary
+      if (current.trim() || rows.length > 0) {
+        rows.push(current.split(',').map(c => c.trim()))
         current = ''
+      }
+    } else if (char === ',' && !inQuotes) {
+      rows.push([current.trim()])
+      current = ''
+    } else {
+      current += char
+    }
+  }
+  if (current.trim()) {
+    rows.push(current.split(',').map(c => c.trim()))
+  }
+
+  // Proper CSV parsing
+  const lines = csvText.split('\n')
+  const result: string[][] = []
+
+  for (const line of lines) {
+    if (!line.trim()) continue
+    const cells: string[] = []
+    let cell = ''
+    let inQuote = false
+
+    for (const char of line) {
+      if (char === '"') {
+        inQuote = !inQuote
+      } else if (char === ',' && !inQuote) {
+        cells.push(cell.trim())
+        cell = ''
       } else {
-        current += char
+        cell += char
       }
     }
-    cells.push(current.trim())
-    return cells
-  })
+    cells.push(cell.trim())
+    result.push(cells)
+  }
+
+  return result
+}
+
+export async function getLinks(sheetId: string, sheetName = 'Sheet1'): Promise<LinkItem[]> {
+  const csvText = await fetchSheetCSV(sheetId, sheetName)
+  const rows = parseCSV(csvText)
 
   // Skip header row
   const dataRows = rows.slice(1)
@@ -42,6 +82,18 @@ export async function getLinks(sheetId: string, sheetName = 'Sheet1'): Promise<L
       title: row[0]?.trim() || '',
       url: row[1]?.trim() || '',
     }))
+}
+
+export async function getTagline(sheetId: string, sheetName = 'Sheet2'): Promise<string> {
+  const csvText = await fetchSheetCSV(sheetId, sheetName)
+  const rows = parseCSV(csvText)
+
+  // Return the first cell of the first row
+  if (rows.length > 0 && rows[0].length > 0) {
+    return rows[0][0].trim()
+  }
+
+  return ''
 }
 
 // Map link titles to emoji icons
