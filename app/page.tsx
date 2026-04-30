@@ -9,8 +9,8 @@ async function getData() {
     throw new Error('SHEET_ID environment variable is not set')
   }
   const [links, tagline] = await Promise.all([
-    getLinks(sheetId, 'Sheet1'),
-    getTagline(sheetId, 'About Text'),
+    getLinks(sheetId),
+    getTagline(sheetId),
   ])
   return { links, tagline }
 }

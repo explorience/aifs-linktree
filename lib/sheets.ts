@@ -3,46 +3,23 @@ export interface LinkItem {
   url: string
 }
 
-async function fetchSheetCSV(sheetId: string, sheetName: string): Promise<string> {
-  const encodedSheetName = encodeURIComponent(sheetName)
-  const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=${encodedSheetName}`
+// Fetches from a Google Sheet using CSV export
+// Uses gid (sheetId) when available so tab name changes don't break things
+async function fetchSheetCSV(sheetId: string, options: { sheetName?: string; gid?: number }): Promise<string> {
+  // Prefer gid, fall back to sheetName
+  const param = options.gid !== undefined ? String(options.gid) : encodeURIComponent(options.sheetName || 'Sheet1')
+  const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=${param}`
 
   const response = await fetch(csvUrl)
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch sheet "${sheetName}": ${response.status}`)
+    throw new Error(`Failed to fetch sheet (gid=${options.gid}, name=${options.sheetName}): ${response.status}`)
   }
 
   return response.text()
 }
 
 function parseCSV(csvText: string): string[][] {
-  const rows: string[][] = []
-  let current = ''
-  let inQuotes = false
-
-  for (const char of csvText) {
-    if (char === '"') {
-      inQuotes = !inQuotes
-    } else if (char === '\n' && !inQuotes) {
-      // Don't process newlines inside quotes
-      // Actually, check if we're at a row boundary
-      if (current.trim() || rows.length > 0) {
-        rows.push(current.split(',').map(c => c.trim()))
-        current = ''
-      }
-    } else if (char === ',' && !inQuotes) {
-      rows.push([current.trim()])
-      current = ''
-    } else {
-      current += char
-    }
-  }
-  if (current.trim()) {
-    rows.push(current.split(',').map(c => c.trim()))
-  }
-
-  // Proper CSV parsing
   const lines = csvText.split('\n')
   const result: string[][] = []
 
@@ -69,8 +46,9 @@ function parseCSV(csvText: string): string[][] {
   return result
 }
 
-export async function getLinks(sheetId: string, sheetName = 'Sheet1'): Promise<LinkItem[]> {
-  const csvText = await fetchSheetCSV(sheetId, sheetName)
+export async function getLinks(sheetId: string): Promise<LinkItem[]> {
+  // gid=0 = "Links" sheet
+  const csvText = await fetchSheetCSV(sheetId, { gid: 0 })
   const rows = parseCSV(csvText)
 
   // Skip header row
@@ -84,8 +62,9 @@ export async function getLinks(sheetId: string, sheetName = 'Sheet1'): Promise<L
     }))
 }
 
-export async function getTagline(sheetId: string, sheetName = 'Sheet2'): Promise<string> {
-  const csvText = await fetchSheetCSV(sheetId, sheetName)
+export async function getTagline(sheetId: string): Promise<string> {
+  // gid=2033498538 = "About Text" sheet
+  const csvText = await fetchSheetCSV(sheetId, { gid: 2033498538 })
   const rows = parseCSV(csvText)
 
   // Return the first cell of the first row
