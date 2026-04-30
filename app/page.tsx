@@ -10,7 +10,7 @@ async function getData() {
   }
   const [links, tagline] = await Promise.all([
     getLinks(sheetId, 'Sheet1'),
-    getTagline(sheetId, 'Sheet2'),
+    getTagline(sheetId, 'About Text'),
   ])
   return { links, tagline }
 }
