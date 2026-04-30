@@ -1,36 +1,37 @@
-import { google } from 'googleapis'
-
 export interface LinkItem {
   title: string
   url: string
 }
 
-function getAuth() {
-  const credentials = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
+export async function getLinks(sheetId: string, sheetName = 'Sheet1'): Promise<LinkItem[]> {
+  // Public sheet: use CSV export endpoint (no auth required)
+  const encodedSheetName = encodeURIComponent(sheetName)
+  const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=${encodedSheetName}`
 
-  if (!credentials) {
-    throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON environment variable is not set')
+  const response = await fetch(csvUrl)
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch sheet: ${response.status}`)
   }
 
-  const parsed = JSON.parse(credentials)
-  return new google.auth.GoogleAuth({
-    credentials: parsed,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+  const csvText = await response.text()
+  const rows = csvText.split('\n').map((row) => {
+    const cells: string[] = []
+    let current = ''
+    let inQuotes = false
+    for (const char of row) {
+      if (char === '"') {
+        inQuotes = !inQuotes
+      } else if (char === ',' && !inQuotes) {
+        cells.push(current.trim())
+        current = ''
+      } else {
+        current += char
+      }
+    }
+    cells.push(current.trim())
+    return cells
   })
-}
-
-export async function getLinks(sheetId: string, sheetName = 'Sheet1'): Promise<LinkItem[]> {
-  const auth = getAuth()
-  const sheets = google.sheets({ version: 'v4', auth })
-
-  const range = `${sheetName}!A:B`
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: sheetId,
-    range,
-    valueRenderOption: 'FORMATTED_VALUE',
-  })
-
-  const rows = response.data.values || []
 
   // Skip header row
   const dataRows = rows.slice(1)
